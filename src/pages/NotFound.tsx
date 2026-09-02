@@ -1,0 +1,7 @@
+import { Link } from "react-router-dom";
+import CorporatePageFrame from "@/components/CorporatePageFrame";
+
+const NotFound = () => <CorporatePageFrame pageNumber="—" eyebrow="Page not found" title={<>This page took a <em>different turn.</em></>} intro="The address you followed is no longer here. The work is still moving." actionLabel="Return home" actionHref="/">
+  <section className="kh-cp-section kh-cp-section--paper"><div className="kh-cp-shell"><div className="kh-cp-statline"><div><strong>404</strong><span>Not found</span></div><div><strong>01</strong><span>Clear next step</span></div><div><strong>↗</strong><span>Back to Kingshill</span></div></div><div className="kh-cp-split" style={{ marginTop: "clamp(48px, 8vw, 120px)" }}><div className="kh-cp-copy"><p>Let&apos;s get you back to the beginning.</p><p>Explore our programmes, meet the faculty, or start a conversation with the academy.</p></div><div className="kh-cp-aside"><div className="kh-cp-aside__row"><span>01</span><div><strong><Link to="/">Home</Link></strong><p>Return to the opening.</p></div></div><div className="kh-cp-aside__row"><span>02</span><div><strong><Link to="/training">Training</Link></strong><p>Find your programme.</p></div></div><div className="kh-cp-aside__row"><span>03</span><div><strong><Link to="/contact">Contact</Link></strong><p>Talk to the academy.</p></div></div></div></div></div></section>
+</CorporatePageFrame>;
+export default NotFound;

@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Geist KH";
+  src: url("/experience/fonts/GeistVF.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono KH";
+  src: url("/experience/fonts/GeistMonoVF.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lexend KH";
+  src: url("/generated/LexendVF.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
+  --kh-ink: #07131f;
+  --kh-navy: #0c2230;
+  --kh-green: #364a35;
+  --kh-gold: #c9a95d;
+  --kh-bone: #f2f0e8;
+  --kh-paper: #e7e3d8;
+  --kh-red: #8d2a2a;
+  --kh-muted: #68736f;
+  --kh-line: rgba(7, 19, 31, .18);
+  --kh-display: "Lexend KH", "Geist KH", sans-serif;
+  --kh-body: "Geist KH", Arial, sans-serif;
+  --kh-mono: "Geist Mono KH", monospace;
+  color: var(--kh-ink);
+  background: var(--kh-bone);
+  font-family: var(--kh-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+html { min-width: 320px; scroll-behavior: smooth; }
+body { min-width: 320px; margin: 0; overflow-x: hidden; background: var(--kh-bone); }
+body, button, input, textarea { font-family: var(--kh-body); }
+a { color: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--kh-gold); outline-offset: 4px; }
+img, video, canvas { max-width: 100%; }
+
+.kh-shell { width: min(calc(100% - 64px), 1400px); margin-inline: auto; }
+.kh-label { display: block; color: var(--kh-gold); font-family: var(--kh-mono); font-size: .64rem; font-weight: 700; letter-spacing: .15em; line-height: 1.35; text-transform: uppercase; }
+.kh-editorial-heading { margin: 0; font-family: var(--kh-display); font-weight: 520; letter-spacing: -.075em; line-height: .9; text-wrap: balance; }
+.kh-editorial-heading--outline { color: transparent; -webkit-text-stroke: 1px currentColor; }
+.kh-editorial-heading--ghost { color: rgba(7, 19, 31, .13); }
+.kh-editorial-heading--serif { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-weight: 500; letter-spacing: -.07em; }
+
+@media (max-width: 720px) {
+  .kh-shell { width: min(calc(100% - 32px), 1400px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

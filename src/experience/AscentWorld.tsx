@@ -102,24 +102,13 @@ void main() {
   float mist = fbm(vec2(uv.x * 4.2 + uTime * 0.010, uv.y * 8.0 - uTime * 0.006) + uRoute * 3.7);
   color = mix(color, mix(predawn, vec3(0.52, 0.61, 0.65), t), mistBand * smoothstep(0.48, 0.84, mist) * 0.12);
 
-  vec2 cells = floor(uv * vec2(160.0, 90.0));
-  float starSeed = hash21(cells + floor(uRoute * 19.0));
-  float star = step(0.996, starSeed);
-  float starFade = smoothstep(0.80, 0.34, t) * smoothstep(0.36, 0.68, uv.y);
-  color += vec3(0.52, 0.62, 0.68) * star * starFade * 0.26;
-
-  float dustSeed = hash21(cells * 1.73 + 12.4);
-  float dust = step(0.9935, dustSeed) * smoothstep(0.68, 0.14, uv.y);
-  float dustPulse = 0.42 + 0.58 * sin(uTime * 0.44 + dustSeed * 20.0);
-  color += gold * dust * dustPulse * (0.08 + 0.22 * t);
-
   float radius = length((uv - uTransitionOrigin) * vec2(uResolution.x / max(uResolution.y, 1.0), 1.0));
   float ringRadius = uTransition * 1.28;
   float ring = 1.0 - smoothstep(0.0, 0.018 + uVelocity * 0.012, abs(radius - ringRadius));
   color += gold * ring * (1.0 - uTransition) * 0.35;
 
   float introLine = 1.0 - smoothstep(0.0, 0.003, abs(uv.y - horizonY));
-  color += gold * introLine * (1.0 - uIntro) * 0.7;
+  color += gold * introLine * (1.0 - uIntro) * 0.25;
 
   float grain = hash21(gl_FragCoord.xy + fract(uTime) * 137.0) - 0.5;
   color += grain * 0.012;
@@ -235,9 +224,7 @@ float noise(vec2 p) {
 void main() {
   vec2 screenUv = gl_FragCoord.xy / max(uResolution, vec2(1.0));
   vec2 lantern = uPointer;
-  if (uPointerActive < 0.5) {
-    lantern = vec2(0.56 + sin(uTime * 0.13) * 0.08, 0.27 + sin(uTime * 0.09 + 1.7) * 0.035);
-  }
+  if (uPointerActive < 0.5) lantern = vec2(0.5, 0.42);
 
   float interval = mix(2.35, 3.05, smoothstep(0.0, 1.0, uWorldTime));
   float phase = abs(fract(vHeight * interval + uProgramme * 0.037) - 0.5);
@@ -249,8 +236,8 @@ void main() {
 
   float aspect = uResolution.x / max(uResolution.y, 1.0);
   float lanternDistance = length((screenUv - lantern) * vec2(aspect, 1.0));
-  float lanternPool = smoothstep(0.38, 0.015, lanternDistance);
-  lanternPool = pow(lanternPool, 1.35);
+  float lanternPool = smoothstep(0.46, 0.008, lanternDistance);
+  lanternPool = pow(lanternPool, 1.18);
 
   float transitionRadius = uTransition * 1.25;
   float transitionDistance = length((screenUv - uTransitionOrigin) * vec2(aspect, 1.0));
@@ -270,8 +257,9 @@ void main() {
   vec3 lineColor = mix(blueLine, dawnLine, dawn) * (0.22 + major * 0.15);
   float goldAmount = clamp(lanternPool * 1.18 + transitionRing * 0.72 + major * lanternPool * 0.42, 0.0, 1.0);
   lineColor = mix(lineColor, gold, goldAmount);
-  float lineStrength = contour * (0.19 + major * 0.18 + lanternPool * 0.88 + transitionRing * 0.5);
+  float lineStrength = contour * (0.16 + major * 0.14 + lanternPool * 1.45 + transitionRing * 0.5);
   vec3 color = mix(base, lineColor, clamp(lineStrength, 0.0, 1.0));
+  color += gold * lanternPool * 0.065;
 
   float valley = smoothstep(0.35, -1.25, vHeight);
   float mistNoise = noise(vWorld.xz * 0.15 + vec2(uTime * 0.012, -uTime * 0.008) + uRoute * 2.7);
@@ -419,6 +407,10 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
       return;
     }
 
+    gl.clearColor(0, 0, 0, 0);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
     const worldStarted = performance.now();
     let destroyed = false;
     let raf = 0;
@@ -536,7 +528,8 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
       const currentPathname = pathnameRef.current;
       const worldTime = currentPathname === "/" ? Math.min(1, experienceState.scroll.progress * 1.12) : routeWorldTime(currentPathname);
 
-      gl.disable(gl.BLEND);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       gl.disable(gl.DEPTH_TEST);
       gl.useProgram(sky.program);
       setCommon(sky, elapsed, worldTime);

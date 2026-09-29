@@ -38,16 +38,18 @@
 }
 
 .kh-home__hero::before {
+  position: absolute !important;
   inset: 0;
   z-index: 0;
   opacity: 1;
   background:
     linear-gradient(90deg, rgba(4, 14, 25, .62) 0%, rgba(4, 14, 25, .20) 45%, rgba(4, 14, 25, .04) 80%),
-    linear-gradient(180deg, rgba(4, 14, 25, .18) 0%, transparent 38%, rgba(4, 14, 25, .18) 100%);
+    linear-gradient(180deg, rgba(4, 14, 25, .18) 0%, transparent 38%, rgba(4, 14, 25, .18) 100%) !important;
+  background-image:
+    linear-gradient(90deg, rgba(4, 14, 25, .62) 0%, rgba(4, 14, 25, .20) 45%, rgba(4, 14, 25, .04) 80%),
+    linear-gradient(180deg, rgba(4, 14, 25, .18) 0%, transparent 38%, rgba(4, 14, 25, .18) 100%) !important;
   mix-blend-mode: normal;
 }
-
-.kh-home__hero::before { background-image: linear-gradient(90deg, rgba(4, 14, 25, .62), rgba(4, 14, 25, .20) 45%, rgba(4, 14, 25, .04) 80%), linear-gradient(180deg, rgba(4, 14, 25, .18), transparent 38%, rgba(4, 14, 25, .18)); }
 
 .kh-home__hero::after {
   position: absolute;
@@ -160,6 +162,7 @@
   background:
     linear-gradient(180deg, rgba(242, 240, 232, .985), rgba(242, 240, 232, .995)) !important;
   box-shadow: 0 -1px 0 rgba(201, 169, 93, .14);
+  padding-bottom: clamp(110px, 13vw, 190px);
 }
 
 .kh-home__about::before {
@@ -267,7 +270,9 @@
 
 /* --- Programmes / trajectories ------------------------------------------ */
 .kh-home__programmes {
-  background: rgba(3, 12, 21, .90) !important;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(35, 74, 96, .24), transparent 30%),
+    linear-gradient(180deg, #061522 0%, #020a14 100%) !important;
   box-shadow: inset 0 1px 0 rgba(201, 169, 93, .12), inset 0 -1px 0 rgba(132, 167, 190, .12);
 }
 
@@ -382,6 +387,11 @@
   background: radial-gradient(circle at 77% 0%, rgba(201, 169, 93, .14), transparent 29%);
 }
 
+.kh-home__quote-stage::before {
+  content: none !important;
+  display: none !important;
+}
+
 .kh-home__quote-content blockquote {
   text-wrap: balance;
   text-shadow: 0 1px 0 rgba(255, 255, 255, .5);
@@ -419,6 +429,15 @@
   box-shadow: 0 40px 110px rgba(39, 53, 42, .17), inset 0 1px 0 rgba(255, 255, 255, .92);
 }
 
+.kh-footer__line { animation: kh-footer-line-orbit 11s ease-in-out infinite alternate; }
+.kh-footer__line--two { animation-delay: -5.5s; }
+
+@keyframes kh-footer-line-orbit {
+  0% { transform: rotate(18deg) translate3d(-2%, 0, 0) scaleX(.94); opacity: .3; }
+  50% { transform: rotate(24deg) translate3d(2%, -5px, 0) scaleX(1.03); opacity: .72; }
+  100% { transform: rotate(20deg) translate3d(5%, 3px, 0) scaleX(.98); opacity: .38; }
+}
+
 /* --- Corporate route world --------------------------------------------- */
 .kh-cp-hero {
   background: transparent !important;
@@ -427,6 +446,9 @@
 .kh-cp-hero::before {
   opacity: .7 !important;
   background:
+    linear-gradient(90deg, rgba(4, 14, 25, .78), rgba(4, 14, 25, .22) 62%, transparent),
+    radial-gradient(circle at 82% 24%, rgba(201, 169, 93, .10), transparent 24%) !important;
+  background-image:
     linear-gradient(90deg, rgba(4, 14, 25, .78), rgba(4, 14, 25, .22) 62%, transparent),
     radial-gradient(circle at 82% 24%, rgba(201, 169, 93, .10), transparent 24%) !important;
 }
@@ -535,7 +557,9 @@ html[data-kh-route-transition="true"] .kh-home__hero-grid {
   }
 
   .kh-home__programmes {
-    background: rgba(3, 12, 21, .92) !important;
+    background:
+      radial-gradient(circle at 82% 18%, rgba(35, 74, 96, .2), transparent 32%),
+      linear-gradient(180deg, #061522 0%, #020a14 100%) !important;
   }
 
   .kh-home__programme-stage {

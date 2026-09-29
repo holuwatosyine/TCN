@@ -4,7 +4,6 @@ import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import AscentWorld from "@/experience/AscentWorld";
-import FluidPointer from "@/experience/FluidPointer";
 import useBrandGlassShine from "@/components/effects/useBrandGlassShine";
 import "@/experience/AscentExperience.css";
 import { experienceState } from "@/experience/state";
@@ -114,7 +113,6 @@ const ExperienceRuntime = () => {
   return (
     <>
       <AscentWorld pathname={location.pathname} />
-      <FluidPointer />
     </>
   );
 };

@@ -167,8 +167,9 @@ img, video, canvas { max-width: 100%; }
   z-index: 125;
   overflow: hidden;
   pointer-events: none;
-  opacity: 1;
-  mix-blend-mode: screen;
+  opacity: 0;
+  visibility: hidden;
+  mix-blend-mode: normal;
 }
 
 .kh-shader-cursor::after {

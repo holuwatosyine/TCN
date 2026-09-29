@@ -42,10 +42,12 @@
   z-index: 0;
   opacity: 1;
   background:
-    linear-gradient(90deg, rgba(7, 19, 31, .78) 0%, rgba(7, 19, 31, .40) 42%, rgba(7, 19, 31, .04) 76%),
-    linear-gradient(180deg, rgba(7, 19, 31, .24) 0%, transparent 42%, rgba(7, 19, 31, .34) 100%);
+    linear-gradient(90deg, rgba(4, 14, 25, .62) 0%, rgba(4, 14, 25, .20) 45%, rgba(4, 14, 25, .04) 80%),
+    linear-gradient(180deg, rgba(4, 14, 25, .18) 0%, transparent 38%, rgba(4, 14, 25, .18) 100%);
   mix-blend-mode: normal;
 }
+
+.kh-home__hero::before { background-image: linear-gradient(90deg, rgba(4, 14, 25, .62), rgba(4, 14, 25, .20) 45%, rgba(4, 14, 25, .04) 80%), linear-gradient(180deg, rgba(4, 14, 25, .18), transparent 38%, rgba(4, 14, 25, .18)); }
 
 .kh-home__hero::after {
   position: absolute;
@@ -174,6 +176,37 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
+}
+
+.kh-home__about-media.kh-interactive-image {
+  overflow: visible;
+  aspect-ratio: 1.35;
+  background: var(--kh-paper);
+}
+
+.kh-home__about-media .kh-interactive-image__plane {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.kh-home__about-media .kh-kage-cloth {
+  position: absolute;
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 420ms ease;
+}
+
+.kh-home__about-media[data-image-ready="true"] .kh-kage-cloth { opacity: 1; }
+.kh-home__about-media[data-image-ready="true"] .kh-home__about-image { opacity: 0; }
+
+.kh-home__about-media .kh-home__about-image {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  object-fit: cover;
 }
 
 .kh-home__about-media::after {

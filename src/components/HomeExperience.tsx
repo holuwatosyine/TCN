@@ -7,6 +7,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import EditorialHeading from "@/components/EditorialHeading";
 import LiquidButton from "@/components/effects/LiquidButton";
+import InteractiveImage from "@/components/effects/InteractiveImage";
 import HeroPressureHeading from "@/components/HeroPressureHeading";
 import { focusAreas, programmes, testimonials } from "@/content/site";
 import "@/components/HomeExperience.css";
@@ -76,11 +77,15 @@ const HomeExperience = () => {
           <div className="kh-shell">
             <div className="kh-home__section-head" data-home-reveal><div className="kh-home__section-label"><span>02</span><span>About Kingshill</span></div><EditorialHeading className="kh-home__section-title">Potential is a practice.</EditorialHeading></div>
             <div className="kh-home__about-grid">
-              <figure className="kh-home__about-media" data-home-reveal>
+              <InteractiveImage
+                className="kh-home__about-media"
+                imageClassName="kh-home__about-image"
+                src={aboutImage}
+                alt="Kingshill facilitators gathered for a professional development session"
+              >
                 <span className="kh-home__about-contours" aria-hidden="true"><i /><i /><i /></span>
-                <img src={aboutImage} alt="Kingshill facilitators gathered for a professional development session" loading="lazy" decoding="async" />
                 <figcaption><span>02 / Discovery</span><span>We make you see the future and secure it.</span></figcaption>
-              </figure>
+              </InteractiveImage>
               <div className="kh-home__about-copy" data-home-reveal><EditorialHeading as="h3" material="serif">Unlock potential.<br />Raise builders.</EditorialHeading><p>At Kingshill Coaching Academy, we believe in the power of human potential. Founded as Nigeria&apos;s first registered coaching academy, we have been pioneering excellence in coaching education for over two decades.</p><Link className="kh-home__text-link kh-home__text-link--dark" to="/about">Read our story <ArrowUpRight aria-hidden="true" /></Link></div>
             </div>
             <div className="kh-home__pillars" data-home-reveal>{focusAreas.map(([title, copy], index) => <div key={title}><span>{String(index + 1).padStart(2, "0")}</span><strong>{title}</strong><p>{copy}</p></div>)}</div>

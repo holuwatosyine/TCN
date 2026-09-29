@@ -123,7 +123,7 @@ void main() {
 
   float grain = hash21(gl_FragCoord.xy + fract(uTime) * 137.0) - 0.5;
   color += grain * 0.012;
-  outColor = vec4(color, 1.0);
+  outColor = vec4(color, 0.48);
 }`;
 
 const terrainVertex = `#version 300 es
@@ -285,7 +285,7 @@ void main() {
   float edgeGold = contour * lanternPool * (0.12 + uVelocity * 0.22);
   color += gold * edgeGold;
 
-  outColor = vec4(color, 1.0);
+  outColor = vec4(color, 0.84);
 }`;
 
 const createShader = (gl: WebGL2RenderingContext, type: number, source: string) => {
@@ -404,8 +404,10 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const root = document.documentElement;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const gl = canvas.getContext("webgl2", {
-      alpha: false,
+      alpha: true,
       antialias: false,
       depth: true,
       stencil: false,
@@ -417,8 +419,6 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
       return;
     }
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const root = document.documentElement;
     const worldStarted = performance.now();
     let destroyed = false;
     let raf = 0;

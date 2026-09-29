@@ -4,7 +4,10 @@
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background: #07131f;
+  background:
+    linear-gradient(180deg, rgba(7, 19, 31, .22), rgba(7, 19, 31, .08) 44%, rgba(7, 19, 31, .32)),
+    url("/ascent-elevation-target.png") center / cover no-repeat,
+    #07131f;
   contain: strict;
 }
 
@@ -61,9 +64,14 @@ html[data-kh-world="unsupported"] .kh-ascent-world,
 html[data-kh-world="error"] .kh-ascent-world,
 html[data-kh-world="lost"] .kh-ascent-world {
   background:
-    radial-gradient(circle at 60% 72%, rgba(201,169,93,.16), transparent 22%),
-    linear-gradient(180deg, #07131f 0%, #0a1d2d 58%, #132a3b 100%);
+    linear-gradient(180deg, rgba(7, 19, 31, .12), rgba(7, 19, 31, .16) 52%, rgba(7, 19, 31, .34)),
+    url("/ascent-elevation-target.png") center / cover no-repeat,
+    #07131f;
 }
+
+html[data-kh-world="unsupported"] .kh-ascent-world__canvas,
+html[data-kh-world="error"] .kh-ascent-world__canvas,
+html[data-kh-world="lost"] .kh-ascent-world__canvas { opacity: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   .kh-ascent-loader__line span { transition: none; }

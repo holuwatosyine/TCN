@@ -149,6 +149,11 @@ img, video, canvas { max-width: 100%; }
   to { transform: rotate(360deg); }
 }
 
+@keyframes kh-glass-sweep {
+  0%, 100% { transform: translateX(-7%); opacity: .38; }
+  50% { transform: translateX(7%); opacity: .72; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .kh-liquid-button::before { animation: none; }
   [data-brand-glass] { transition: none; }
@@ -164,6 +169,17 @@ img, video, canvas { max-width: 100%; }
   pointer-events: none;
   opacity: 1;
   mix-blend-mode: screen;
+}
+
+.kh-shader-cursor::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: radial-gradient(170px circle at var(--kh-pointer-x, 50%) var(--kh-pointer-y, 42%), rgba(255, 215, 126, .24), rgba(201, 169, 93, .08) 34%, transparent 72%);
+  opacity: .72;
+  filter: blur(2px);
+  mix-blend-mode: screen;
+  transition: background-position .12s ease-out;
 }
 
 .kh-shader-cursor__canvas,

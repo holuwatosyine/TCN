@@ -15,7 +15,7 @@ const Footer = () => (
       </div>
       <div className="kh-footer__stage">
         <FooterSignal />
-        <div className="kh-footer__glass">
+        <div className="kh-footer__glass" data-brand-glass>
           <div className="kh-footer__column">
             <span className="kh-label">Our programmes</span>
             <Link to="/training">Life Coaching Certification</Link>

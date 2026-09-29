@@ -6,6 +6,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import InteractiveImage from "@/components/effects/InteractiveImage";
 import "@/components/CorporatePage.css";
 
 type CorporatePageFrameProps = {
@@ -93,10 +94,13 @@ const CorporatePageFrame = ({
           </div>
 
           {heroImage ? (
-            <figure className="kh-cp-hero__image kh-cp-reveal kh-route-image">
-              <img src={heroImage} alt={heroAlt ?? "Kingshill School of Discovery"} />
+            <InteractiveImage
+              className="kh-cp-hero__image kh-cp-reveal"
+              src={heroImage}
+              alt={heroAlt ?? "Kingshill School of Discovery"}
+            >
               <figcaption>{heroCaption ?? "Kingshill School of Discovery · Lagos"}</figcaption>
-            </figure>
+            </InteractiveImage>
           ) : (
             <div className="kh-cp-hero__signal" aria-hidden="true">
               <span className="kh-cp-hero__signal-mark">KH</span>

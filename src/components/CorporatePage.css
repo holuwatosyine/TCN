@@ -350,3 +350,34 @@
   .kh-cp-hero__signal-line, .kh-cp-hero__foot svg { animation: none; }
   .kh-corporate-page .kh-cp-reveal { opacity: 1; transform: none; transition: none; }
 }
+
+
+/* Full Kingshill floating-image dynamics: WebGL2 cloth simulation plus idle lift. */
+.kh-cp-hero__image.kh-interactive-image {
+  overflow: visible;
+  background: transparent;
+  filter: saturate(.82) contrast(1.04);
+  transition: filter .45s ease;
+  animation: kh-interactive-image-float 6.8s ease-in-out infinite;
+}
+
+.kh-cp-hero__image.kh-interactive-image:hover { filter: saturate(1) contrast(1.02); }
+.kh-cp-hero__image .kh-interactive-image__plane { position: relative; overflow: visible; transform: translateZ(0); box-shadow: none; transition: filter 420ms ease; }
+.kh-cp-hero__image:hover .kh-interactive-image__plane { filter: drop-shadow(0 26px 34px rgba(6, 20, 38, .2)); }
+.kh-cp-hero__image canvas { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; display: block; opacity: 0; pointer-events: none; transition: opacity 420ms ease; }
+.kh-cp-hero__image img { position: relative; z-index: 0; opacity: 1; transform: none !important; }
+.kh-cp-hero__image[data-image-ready="true"] canvas { opacity: 1; }
+.kh-cp-hero__image[data-image-ready="true"] img { opacity: 0; }
+.kh-cp-hero__image .kh-interactive-image__plane > :not(canvas):not(img) { position: absolute; z-index: 2; left: 0; bottom: -28px; }
+
+@keyframes kh-interactive-image-float {
+  50% { translate: 0 -8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kh-cp-hero__image.kh-interactive-image {
+    animation: none;
+    transform: none;
+    transition: none;
+  }
+}

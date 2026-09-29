@@ -4,11 +4,14 @@ import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { experienceState } from "@/experience/state";
+import FluidPointer from "@/experience/FluidPointer";
+import useBrandGlassShine from "@/components/effects/useBrandGlassShine";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const ExperienceRuntime = () => {
   const location = useLocation();
+  useBrandGlassShine();
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -72,7 +75,7 @@ const ExperienceRuntime = () => {
     return () => cancelAnimationFrame(refresh);
   }, [location.pathname]);
 
-  return null;
+  return <FluidPointer />;
 };
 
 export default ExperienceRuntime;

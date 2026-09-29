@@ -3,11 +3,15 @@ import { useLocation } from "react-router-dom";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { experienceState } from "@/experience/state";
+import AscentWorld from "@/experience/AscentWorld";
 import FluidPointer from "@/experience/FluidPointer";
 import useBrandGlassShine from "@/components/effects/useBrandGlassShine";
+import "@/experience/AscentExperience.css";
+import { experienceState } from "@/experience/state";
 
 gsap.registerPlugin(ScrollTrigger);
+
+const routeToken = (pathname: string) => pathname === "/" ? "home" : pathname.replace(/^\//, "").replace(/[^a-z0-9-]/gi, "-") || "home";
 
 const ExperienceRuntime = () => {
   const location = useLocation();
@@ -16,7 +20,14 @@ const ExperienceRuntime = () => {
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const root = document.documentElement;
-    const lenis = reducedMotion ? null : new Lenis({ lerp: .085, smoothWheel: true, syncTouch: true, wheelMultiplier: .82, touchMultiplier: 1.05 });
+    const lenis = reducedMotion ? null : new Lenis({
+      lerp: .082,
+      smoothWheel: true,
+      syncTouch: true,
+      wheelMultiplier: .82,
+      touchMultiplier: 1.03,
+    });
+
     const updateScroll = (event?: { scroll: number; limit: number; velocity: number; direction: number }) => {
       const scroll = event?.scroll ?? window.scrollY;
       const limit = event?.limit ?? Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
@@ -25,27 +36,43 @@ const ExperienceRuntime = () => {
       root.style.setProperty("--kh-scroll-velocity", String(Math.min(1, Math.abs(experienceState.scroll.velocity) / 120)));
       ScrollTrigger.update();
     };
+
     const onNativeScroll = () => updateScroll();
     const onPointerMove = (event: PointerEvent) => {
       experienceState.updatePointer(event.clientX, event.clientY, event.pointerType || "mouse");
-      root.style.setProperty("--kh-pointer-x", event.clientX + "px");
-      root.style.setProperty("--kh-pointer-y", event.clientY + "px");
-      const target = (event.target as Element | null)?.closest("a, button, [data-cursor]");
-      root.dataset.khCursor = target?.getAttribute("data-cursor") || (target ? "interactive" : "default");
+      root.style.setProperty("--kh-pointer-x", `${event.clientX}px`);
+      root.style.setProperty("--kh-pointer-y", `${event.clientY}px`);
+      const target = event.target as Element | null;
+      const interactive = target?.closest("a, button, [data-cursor]");
+      root.dataset.khCursor = interactive?.getAttribute("data-cursor") || (interactive ? "interactive" : "default");
     };
-    const onPointerDown = () => { experienceState.pointer.pressed = true; root.dataset.khPointerDown = "true"; };
-    const onPointerUp = () => { experienceState.pointer.pressed = false; root.dataset.khPointerDown = "false"; };
-    const onVisibility = () => { if (document.hidden) gsap.ticker.sleep(); else gsap.ticker.wake(); };
+    const onPointerDown = (event: PointerEvent) => {
+      experienceState.updatePointer(event.clientX, event.clientY, event.pointerType || "mouse");
+      experienceState.pointer.pressed = true;
+      root.dataset.khPointerDown = "true";
+    };
+    const onPointerUp = () => {
+      experienceState.pointer.pressed = false;
+      root.dataset.khPointerDown = "false";
+    };
+    const onVisibility = () => {
+      if (document.hidden) gsap.ticker.sleep();
+      else gsap.ticker.wake();
+    };
     const onAnchorClick = (event: MouseEvent) => {
       const anchor = (event.target as Element | null)?.closest<HTMLAnchorElement>("a[href^='#']");
       const href = anchor?.getAttribute("href");
       const target = href ? document.querySelector<HTMLElement>(href) : null;
       if (!target) return;
       event.preventDefault();
-      if (lenis) lenis.scrollTo(target, { duration: 1.1 });
-      else target.scrollIntoView({ behavior: "smooth" });
+      if (lenis) lenis.scrollTo(target, { duration: 1.08 });
+      else target.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" });
     };
-    const ticker = (time: number) => { lenis?.raf(time * 1000); experienceState.tick(1 / 60); };
+    const ticker = (time: number) => {
+      lenis?.raf(time * 1000);
+      experienceState.tick(gsap.ticker.deltaRatio(60) / 60);
+    };
+
     if (lenis) lenis.on("scroll", updateScroll);
     else window.addEventListener("scroll", onNativeScroll, { passive: true });
     document.addEventListener("click", onAnchorClick);
@@ -56,6 +83,7 @@ const ExperienceRuntime = () => {
     document.addEventListener("visibilitychange", onVisibility);
     gsap.ticker.add(ticker);
     updateScroll();
+
     return () => {
       lenis?.destroy();
       if (lenis) lenis.off("scroll", updateScroll);
@@ -71,11 +99,24 @@ const ExperienceRuntime = () => {
   }, []);
 
   useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.khRoute = routeToken(location.pathname);
+    root.dataset.khRouteTransition = "true";
+    window.scrollTo({ top: 0, behavior: "auto" });
     const refresh = requestAnimationFrame(() => ScrollTrigger.refresh());
-    return () => cancelAnimationFrame(refresh);
+    const clearTransition = window.setTimeout(() => { delete root.dataset.khRouteTransition; }, 940);
+    return () => {
+      cancelAnimationFrame(refresh);
+      window.clearTimeout(clearTransition);
+    };
   }, [location.pathname]);
 
-  return <FluidPointer />;
+  return (
+    <>
+      <AscentWorld pathname={location.pathname} />
+      <FluidPointer />
+    </>
+  );
 };
 
 export default ExperienceRuntime;

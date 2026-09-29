@@ -1,10 +1,9 @@
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import LogoImage from "@/assets/kingshill-logo-official.webp";
-import FooterSignal from "@/components/FooterSignal";
 
 const Footer = () => (
-  <footer className="kh-footer">
+  <footer className="kh-footer" data-world-stage="summit">
     <div className="kh-shell kh-footer__shell">
       <div className="kh-footer__lead">
         <div>
@@ -14,7 +13,6 @@ const Footer = () => (
         <p>At Kingshill, we unlock potential and raise builders and reformers through coaching education and practical development.</p>
       </div>
       <div className="kh-footer__stage">
-        <FooterSignal />
         <div className="kh-footer__glass" data-brand-glass>
           <div className="kh-footer__column">
             <span className="kh-label">Our programmes</span>

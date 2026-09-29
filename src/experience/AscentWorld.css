@@ -1,0 +1,70 @@
+.kh-ascent-world {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #07131f;
+  contain: strict;
+}
+
+.kh-ascent-world__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.kh-ascent-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  align-content: end;
+  gap: 14px;
+  padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  color: rgba(242, 240, 232, .72);
+  background: #07131f;
+  font: 700 .58rem/1 var(--kh-mono);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.kh-ascent-loader__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgba(201, 169, 93, .12);
+}
+
+.kh-ascent-loader__line span {
+  height: 1px;
+  display: block;
+  background: #c9a95d;
+  box-shadow: 0 0 28px rgba(201, 169, 93, .48);
+  transition: width .08s linear;
+}
+
+.kh-ascent-loader__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.kh-ascent-loader__meta strong {
+  color: #c9a95d;
+  font-size: .72rem;
+}
+
+html[data-kh-world="unsupported"] .kh-ascent-world,
+html[data-kh-world="error"] .kh-ascent-world,
+html[data-kh-world="lost"] .kh-ascent-world {
+  background:
+    radial-gradient(circle at 60% 72%, rgba(201,169,93,.16), transparent 22%),
+    linear-gradient(180deg, #07131f 0%, #0a1d2d 58%, #132a3b 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kh-ascent-loader__line span { transition: none; }
+}

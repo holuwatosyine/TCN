@@ -1,5 +1,5 @@
 export type ExperienceQuality = "low" | "medium" | "high";
-export type ExperienceReadyKey = "assets" | "cloud" | "water" | "fluid";
+export type ExperienceReadyKey = "assets" | "world" | "fluid";
 
 type ReadyListener = () => void;
 
@@ -10,8 +10,8 @@ const inferQuality = (): ExperienceQuality => {
   const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8;
   const cores = navigator.hardwareConcurrency ?? 8;
   const area = window.innerWidth * window.innerHeight;
-  if (memory <= 4 || cores <= 4 || area < 520_000) return "low";
-  if (memory <= 8 || cores <= 8 || area < 1_100_000) return "medium";
+  if (memory <= 3 || cores <= 4 || area > 3_000_000) return "low";
+  if (memory <= 6 || cores <= 6 || area > 1_800_000) return "medium";
   return "high";
 };
 
@@ -40,10 +40,10 @@ class ExperienceState {
     progress: 0,
     velocity: 0,
     direction: 1,
-    cloudProgress: 0,
   };
 
   quality: ExperienceQuality = inferQuality();
+  renderScale = this.quality === "high" ? 1 : this.quality === "medium" ? 0.9 : 0.8;
   reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   private previousPointerTime = typeof performance === "undefined" ? 0 : performance.now();
   private ready = new Set<ExperienceReadyKey>();
@@ -68,8 +68,9 @@ class ExperienceState {
   }
 
   tick(deltaSeconds: number) {
-    const pointerResponse = 1 - Math.exp(-Math.min(deltaSeconds, 0.05) * 9.2);
-    const velocityResponse = 1 - Math.exp(-Math.min(deltaSeconds, 0.05) * 12);
+    const dt = Math.min(Math.max(deltaSeconds, 1 / 240), 0.05);
+    const pointerResponse = 1 - Math.exp(-dt * 9.2);
+    const velocityResponse = 1 - Math.exp(-dt * 12);
     this.pointer.smoothNdcX += (this.pointer.ndcX - this.pointer.smoothNdcX) * pointerResponse;
     this.pointer.smoothNdcY += (this.pointer.ndcY - this.pointer.smoothNdcY) * pointerResponse;
     this.pointer.smoothDeltaX += (this.pointer.deltaX - this.pointer.smoothDeltaX) * velocityResponse;
@@ -87,8 +88,15 @@ class ExperienceState {
     this.scroll.direction = direction || 1;
   }
 
-  setCloudProgress(progress: number) {
-    this.scroll.cloudProgress = clamp(progress);
+
+  setRenderScale(scale: number) {
+    const next = clamp(scale, 0.68, 1);
+    if (Math.abs(next - this.renderScale) < 0.001) return;
+    this.renderScale = next;
+    if (typeof window !== "undefined") {
+      document.documentElement.style.setProperty("--kh-render-scale", next.toFixed(2));
+      window.dispatchEvent(new CustomEvent("kingshill:render-scale", { detail: { scale: next } }));
+    }
   }
 
   markReady(key: ExperienceReadyKey) {
@@ -109,4 +117,3 @@ class ExperienceState {
 }
 
 export const experienceState = new ExperienceState();
-

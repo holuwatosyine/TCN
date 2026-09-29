@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import LogoImage from "@/assets/kingshill-logo-official.webp";
 import "@/components/site.css";
+import "@/experience/AscentExperience.css";
 
 const items = [
   { label: "About", href: "/about" },
@@ -28,27 +29,32 @@ const MagneticDock = () => {
     if (!dock) return;
     const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
     if (!fine || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let raf = 0;
-    let pointerX = 0;
-    let targetX = 0;
     const buttons = Array.from(dock.querySelectorAll<HTMLElement>("[data-dock-item]"));
-    const move = (event: PointerEvent) => { pointerX = event.clientX; };
-    const draw = () => {
-      targetX += (pointerX - targetX) * .18;
+
+    const reset = () => buttons.forEach((button) => {
+      button.style.setProperty("--dock-scale", "1");
+      button.style.setProperty("--dock-y", "0px");
+      button.style.setProperty("--dock-bright", "0");
+    });
+
+    const move = (event: PointerEvent) => {
       buttons.forEach((button) => {
         const rect = button.getBoundingClientRect();
-        const distance = Math.abs(targetX - (rect.left + rect.width / 2));
+        const distance = Math.abs(event.clientX - (rect.left + rect.width / 2));
         const influence = Math.max(0, 1 - distance / 150);
         const amount = influence * influence * (3 - 2 * influence);
-        button.style.setProperty("--dock-scale", String(1 + amount * .16));
-        button.style.setProperty("--dock-y", String(amount * 5) + "px");
+        button.style.setProperty("--dock-scale", String(1 + amount * .14));
+        button.style.setProperty("--dock-y", `${amount * 4}px`);
         button.style.setProperty("--dock-bright", String(amount));
       });
-      raf = requestAnimationFrame(draw);
     };
-    window.addEventListener("pointermove", move, { passive: true });
-    raf = requestAnimationFrame(draw);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("pointermove", move); };
+
+    dock.addEventListener("pointermove", move, { passive: true });
+    dock.addEventListener("pointerleave", reset, { passive: true });
+    return () => {
+      dock.removeEventListener("pointermove", move);
+      dock.removeEventListener("pointerleave", reset);
+    };
   }, []);
 
   return (
@@ -57,7 +63,7 @@ const MagneticDock = () => {
         <img src={LogoImage} alt="" />
         <span><strong>Kingshill</strong><small>School of Discovery</small></span>
       </Link>
-      <nav ref={dockRef} className="kh-dock" aria-label="Primary navigation">
+      <nav ref={dockRef} className="kh-dock" aria-label="Primary navigation" data-brand-glass>
         {items.map((item, index) => <Link key={item.href} to={item.href} data-dock-item onClick={() => setMobileOpen(false)} className={location.pathname === item.href ? "is-active" : ""}><small>{String(index + 1).padStart(2, "0")}</small><span>{item.label}</span></Link>)}
       </nav>
       <Link className="kh-dock-contact" to="/contact">Begin here <span aria-hidden="true">↗</span></Link>

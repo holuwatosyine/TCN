@@ -8,6 +8,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import InteractiveImage from "@/components/effects/InteractiveImage";
 import "@/components/CorporatePage.css";
+import "@/experience/AscentExperience.css";
 
 type CorporatePageFrameProps = {
   eyebrow: string;
@@ -35,6 +36,7 @@ const CorporatePageFrame = ({
   actionHref = "/contact",
 }: CorporatePageFrameProps) => {
   const pageRef = useRef<HTMLDivElement | null>(null);
+  const signalMode = ({ "03": "terrace", "04": "portrait", "05": "archive", "06": "cinema", "07": "location" } as Record<string, string>)[pageNumber] ?? "ridge";
 
   useLayoutEffect(() => {
     const page = pageRef.current;
@@ -48,8 +50,8 @@ const CorporatePageFrame = ({
     }
 
     const context = gsap.context(() => {
-      const intro = gsap.timeline({ defaults: { ease: "power3.out" } });
-      intro
+      const introTimeline = gsap.timeline({ defaults: { ease: "power3.out" } });
+      introTimeline
         .from(".kh-cp-hero__eyebrow", { y: 18, autoAlpha: 0, duration: .65 })
         .from(".kh-cp-hero__copy h1", { yPercent: 18, autoAlpha: 0, duration: 1.15 }, "-=.32")
         .from(".kh-cp-hero__copy > p, .kh-cp-hero__copy .kh-cp-link", { y: 18, autoAlpha: 0, duration: .7, stagger: .08 }, "-=.55")
@@ -75,52 +77,51 @@ const CorporatePageFrame = ({
   }, []);
 
   return (
-  <div ref={pageRef} className="kh-corporate-page" id="main-content">
-    <Navigation />
-    <main>
-      <section className="kh-cp-hero kh-route-section" aria-labelledby="route-title">
-        <div className="kh-cp-shell kh-cp-hero__grid">
-          <div className="kh-cp-hero__eyebrow kh-cp-reveal">
-            <span>{pageNumber}</span>
-            <p>{eyebrow}</p>
-          </div>
-
-          <div className="kh-cp-hero__copy kh-cp-reveal">
-            <h1 id="route-title">{title}</h1>
-            <p>{intro}</p>
-            <Link className="kh-cp-link kh-cp-link--light" to={actionHref}>
-              {actionLabel} <ArrowUpRight aria-hidden="true" />
-            </Link>
-          </div>
-
-          {heroImage ? (
-            <InteractiveImage
-              className="kh-cp-hero__image kh-cp-reveal"
-              src={heroImage}
-              alt={heroAlt ?? "Kingshill School of Discovery"}
-            >
-              <figcaption>{heroCaption ?? "Kingshill School of Discovery · Lagos"}</figcaption>
-            </InteractiveImage>
-          ) : (
-            <div className="kh-cp-hero__signal" aria-hidden="true">
-              <span className="kh-cp-hero__signal-mark">KH</span>
-              <span className="kh-cp-hero__signal-line" />
-              <span className="kh-cp-hero__signal-note">Human capital / Intelligence / Development</span>
+    <div ref={pageRef} className="kh-corporate-page" id="main-content" data-page-number={pageNumber}>
+      <Navigation />
+      <main>
+        <section className="kh-cp-hero kh-route-section" aria-labelledby="route-title" data-world-stage="route">
+          <div className="kh-cp-shell kh-cp-hero__grid">
+            <div className="kh-cp-hero__eyebrow kh-cp-reveal">
+              <span>{pageNumber}</span>
+              <p>{eyebrow}</p>
             </div>
-          )}
 
-          <div className="kh-cp-hero__foot">
-            <span>School of Discovery</span>
-            <span>Life transformation &amp; social development</span>
-            <a href="#route-content" aria-label="Scroll to page content"><ArrowDown aria-hidden="true" /></a>
+            <div className="kh-cp-hero__copy kh-cp-reveal">
+              <h1 id="route-title">{title}</h1>
+              <p>{intro}</p>
+              <Link className="kh-cp-link kh-cp-link--light" to={actionHref}>
+                {actionLabel} <ArrowUpRight aria-hidden="true" />
+              </Link>
+            </div>
+
+            {heroImage ? (
+              <InteractiveImage
+                className="kh-cp-hero__image kh-cp-reveal kh-route-image"
+                src={heroImage}
+                alt={heroAlt ?? "Kingshill School of Discovery"}
+              >
+                <figcaption>{heroCaption ?? "Kingshill School of Discovery · Lagos"}</figcaption>
+              </InteractiveImage>
+            ) : (
+              <div className="kh-cp-hero__signal" aria-hidden="true">
+                <span className="kh-cp-hero__signal-mark">KH</span>
+                <span className="kh-cp-hero__signal-line" />
+                <span className="kh-cp-hero__signal-note">Human capital / Intelligence / Development</span>
+              </div>
+            )}
+
+            <div className="kh-cp-hero__foot">
+              <span>School of Discovery</span>
+              <span>Life transformation &amp; social development</span>
+              <a href="#route-content" aria-label="Scroll to page content"><ArrowDown aria-hidden="true" /></a>
+            </div>
           </div>
-        </div>
-      </section>
-
-      <div id="route-content">{children}</div>
-    </main>
-    <Footer />
-  </div>
+        </section>
+        <div id="route-content">{children}</div>
+      </main>
+      <Footer />
+    </div>
   );
 };
 

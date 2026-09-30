@@ -303,6 +303,11 @@
 .kh-corporate-page .kh-cp-reveal.is-inview,
 .kh-corporate-page .kh-cp-reveal[data-reveal-ready="true"] { opacity: 1; transform: none; }
 
+.kh-corporate-page .kh-cp-hero__image.kh-interactive-image {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 @keyframes cp-signal-line { 0% { transform: scaleX(.26); opacity: .36; } 100% { transform: scaleX(1); opacity: 1; } }
 @keyframes cp-scroll-nudge { 50% { transform: translateY(5px); } }
 

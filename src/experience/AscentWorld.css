@@ -4,10 +4,7 @@
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(7, 19, 31, .22), rgba(7, 19, 31, .08) 44%, rgba(7, 19, 31, .32)),
-    url("/ascent-elevation-target.png") center / cover no-repeat,
-    #07131f;
+  background: #07131f;
   contain: strict;
 }
 

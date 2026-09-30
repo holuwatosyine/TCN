@@ -528,6 +528,11 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
       const currentPathname = pathnameRef.current;
       const worldTime = currentPathname === "/" ? Math.min(1, experienceState.scroll.progress * 1.12) : routeWorldTime(currentPathname);
 
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.clearColor(0.027, 0.075, 0.122, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.clearColor(0, 0, 0, 0);
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       gl.disable(gl.DEPTH_TEST);

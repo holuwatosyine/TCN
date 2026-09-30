@@ -429,14 +429,6 @@
   box-shadow: 0 40px 110px rgba(39, 53, 42, .17), inset 0 1px 0 rgba(255, 255, 255, .92);
 }
 
-.kh-footer__line { animation: kh-footer-line-orbit 11s ease-in-out infinite alternate; }
-.kh-footer__line--two { animation-delay: -5.5s; }
-
-@keyframes kh-footer-line-orbit {
-  0% { transform: rotate(18deg) translate3d(-2%, 0, 0) scaleX(.94); opacity: .3; }
-  50% { transform: rotate(24deg) translate3d(2%, -5px, 0) scaleX(1.03); opacity: .72; }
-  100% { transform: rotate(20deg) translate3d(5%, 3px, 0) scaleX(.98); opacity: .38; }
-}
 
 /* --- Corporate route world --------------------------------------------- */
 .kh-cp-hero {

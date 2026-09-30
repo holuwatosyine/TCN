@@ -70,7 +70,7 @@ export const InteractiveImage = ({ src, alt, className = "", imageClassName = ""
     <div ref={rootRef} className={`kh-interactive-image ${className}`} data-cursor="image">
       <div className="kh-interactive-image__plane">
         <canvas ref={canvasRef} className="kh-kage-cloth" aria-hidden="true" />
-        <img ref={imageRef} src={src} alt={alt} className={imageClassName} loading="lazy" decoding="async" />
+        <img ref={imageRef} src={src} alt={alt} className={imageClassName} loading="eager" decoding="async" />
         {children}
       </div>
     </div>

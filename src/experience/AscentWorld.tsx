@@ -99,7 +99,7 @@ void main() {
   color += mix(vec3(0.08, 0.16, 0.23), vec3(0.34, 0.48, 0.58), t) * horizon * (0.12 + 0.34 * t);
 
   float mistBand = smoothstep(0.54, 0.16, uv.y) * smoothstep(0.03, 0.27, uv.y);
-  float mist = fbm(vec2(uv.x * 4.2 + uTime * 0.010, uv.y * 8.0 - uTime * 0.006) + uRoute * 3.7);
+  float mist = fbm(vec2(uv.x * 4.2, uv.y * 8.0) + uRoute * 3.7);
   color = mix(color, mix(predawn, vec3(0.52, 0.61, 0.65), t), mistBand * smoothstep(0.48, 0.84, mist) * 0.12);
 
   float radius = length((uv - uTransitionOrigin) * vec2(uResolution.x / max(uResolution.y, 1.0), 1.0));
@@ -108,11 +108,7 @@ void main() {
   color += gold * ring * (1.0 - uTransition) * 0.35;
 
   float introLine = 1.0 - smoothstep(0.0, 0.003, abs(uv.y - horizonY));
-  color += gold * introLine * (1.0 - uIntro) * 0.25;
-
-  float grain = hash21(gl_FragCoord.xy + fract(uTime) * 137.0) - 0.5;
-  color += grain * 0.012;
-  outColor = vec4(color, 0.48);
+  outColor = vec4(color, 1.0);
 }`;
 
 const terrainVertex = `#version 300 es
@@ -164,7 +160,6 @@ void main() {
   float programmeBias = sin((uProgramme + 1.0) * 1.17 + x * 0.12 + z * 0.08) * 0.18;
   float h = (broad - 0.48) * 4.9 + (detail - 0.5) * 0.95 + ridge + programmeBias;
   h += exp(-pow(x * 0.16 - sin(z * 0.08 + routeSeed), 2.0)) * 0.72;
-  h -= (1.0 - uIntro) * 2.6;
 
   float scroll = clamp(uWorldTime, 0.0, 1.0);
   float routeCam = sin(routeSeed * 0.31) * 0.75;
@@ -262,7 +257,7 @@ void main() {
   color += gold * lanternPool * 0.065;
 
   float valley = smoothstep(0.35, -1.25, vHeight);
-  float mistNoise = noise(vWorld.xz * 0.15 + vec2(uTime * 0.012, -uTime * 0.008) + uRoute * 2.7);
+  float mistNoise = noise(vWorld.xz * 0.15 + uRoute * 2.7);
   float mist = valley * smoothstep(0.42, 0.78, mistNoise) * (0.08 + dawn * 0.08);
   vec3 fogColor = mix(vec3(0.07, 0.12, 0.16), vec3(0.42, 0.52, 0.56), dawn);
   color = mix(color, fogColor, mist);
@@ -273,7 +268,7 @@ void main() {
   float edgeGold = contour * lanternPool * (0.12 + uVelocity * 0.22);
   color += gold * edgeGold;
 
-  outColor = vec4(color, 0.84);
+  outColor = vec4(color, 1.0);
 }`;
 
 const createShader = (gl: WebGL2RenderingContext, type: number, source: string) => {
@@ -407,7 +402,7 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
       return;
     }
 
-    gl.clearColor(0, 0, 0, 0);
+    gl.clearColor(0.018, 0.044, 0.074, 1);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
@@ -530,9 +525,8 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.clearColor(0.027, 0.075, 0.122, 1);
+      gl.clearColor(0.018, 0.044, 0.074, 1);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      gl.clearColor(0, 0, 0, 0);
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       gl.disable(gl.DEPTH_TEST);

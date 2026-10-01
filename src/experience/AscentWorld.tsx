@@ -1,5 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { experienceState } from "@/experience/state";
+import {
+  UNIFORM_NAMES,
+  dustFragment,
+  dustVertex,
+  finishFragment,
+  finishVertex,
+  skyFragment,
+  skyVertex,
+  terrainFragment,
+  terrainVertex,
+} from "@/experience/ascentShaders";
 import "@/experience/AscentWorld.css";
 
 type AscentWorldProps = {
@@ -22,254 +33,72 @@ const routeIndex = (pathname: string) => {
   return 7;
 };
 
-const routeWorldTime = (pathname: string) => {
-  if (pathname === "/") return experienceState.scroll.progress;
-  if (pathname.startsWith("/about")) return 0.48;
-  if (pathname.startsWith("/training")) return 0.18;
-  if (pathname.startsWith("/faculty")) return 0.64;
-  if (pathname.startsWith("/resources")) return 0.78;
-  if (pathname.startsWith("/gallery")) return 0.32;
-  if (pathname.startsWith("/contact")) return 0.58;
-  return 0.42;
+type Look = {
+  camY: number; pitch: number; ahead: number; time: number; trails: number; terrace: number;
+  summit: number; beacon: number; dim: number; contour: number; flat: number;
+  lx: number; ly: number; lp: number;
 };
 
-const skyVertex = `#version 300 es
-precision highp float;
-out vec2 vUv;
-void main() {
-  vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2));
-  vUv = p * 0.5;
-  gl_Position = vec4(p * 2.0 - 1.0, 0.999, 1.0);
-}`;
+const L = (o: Partial<Look>): Look => ({
+  camY: 1.75, pitch: 1.55, ahead: 20, time: 0, trails: 0, terrace: 0, summit: 0, beacon: 0,
+  dim: 0, contour: 1, flat: 1, lx: 0.5, ly: 0.17, lp: 0.95, ...o,
+});
 
-const skyFragment = `#version 300 es
-precision highp float;
-in vec2 vUv;
-out vec4 outColor;
-uniform vec2 uResolution;
-uniform vec2 uPointer;
-uniform vec2 uTransitionOrigin;
-uniform float uTime;
-uniform float uWorldTime;
-uniform float uRoute;
-uniform float uTransition;
-uniform float uVelocity;
-uniform float uIntro;
+// Home: the page is a climb. Each section is a stage of the same hillside.
+const HOME_STAGES: Record<string, Look> = {
+  night: L({}),
+  discovery: L({ camY: 2.6, pitch: 1.0, ahead: 18, time: 0.22, ly: 0.3 }),
+  routes: L({ camY: 10.5, pitch: -9.6, ahead: 7.5, time: 0.1, trails: 1, flat: 0.72, lx: 0.66, ly: 0.5, lp: 0.3 }),
+  dawn: L({ camY: 2.4, pitch: 1.4, ahead: 20, time: 0.9, lx: 0.5, ly: 0.36, lp: 0.7 }),
+  summit: L({ camY: 1.9, pitch: 1.5, ahead: 20, time: 1, summit: 1, lx: 0.5, ly: 0.36, lp: 0.6 }),
+};
 
-float hash21(vec2 p) {
-  p = fract(p * vec2(123.34, 456.21));
-  p += dot(p, p + 45.32);
-  return fract(p.x * p.y);
-}
-float noise(vec2 p) {
-  vec2 i = floor(p);
-  vec2 f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash21(i), hash21(i + vec2(1.0, 0.0)), f.x),
-             mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0)), f.x), f.y);
-}
-float fbm(vec2 p) {
-  float v = 0.0;
-  float a = 0.5;
-  mat2 r = mat2(0.8, -0.6, 0.6, 0.8);
-  for (int i = 0; i < 4; i++) {
-    v += a * noise(p);
-    p = r * p * 2.03 + 7.3;
-    a *= 0.5;
-  }
-  return v;
-}
+// Inner routes: same world, different vantage point and hour.
+const ROUTE_LOOKS: Record<string, Look> = {
+  about: L({ camY: 1.3, pitch: 1.2, ahead: 22, time: 0.46, dim: 0.05, lx: 0.62, ly: 0.2 }),
+  training: L({ camY: 5.4, pitch: -2.6, ahead: 13, time: 0.2, terrace: 1, lx: 0.6, ly: 0.3 }),
+  faculty: L({ camY: 1.9, pitch: 1.9, ahead: 20, time: 0.62, dim: 0.22, lp: 0.7, ly: 0.22 }),
+  resources: L({ camY: 7.6, pitch: -5.6, ahead: 10, time: 0.64, dim: 0.12, contour: 1.45, lx: 0.5, ly: 0.32, lp: 0.8 }),
+  gallery: L({ camY: 1.5, pitch: 1.3, ahead: 22, time: 0.3, dim: 0.34, lp: 0.8, ly: 0.2 }),
+  contact: L({ camY: 3.4, pitch: 0.4, ahead: 19, time: 0.55, beacon: 1, lx: 0.5, ly: 0.36, lp: 1.1 }),
+  other: L({}),
+};
 
-void main() {
-  vec2 uv = gl_FragCoord.xy / max(uResolution, vec2(1.0));
-  float t = clamp(uWorldTime, 0.0, 1.0);
-  vec3 ink = vec3(0.027, 0.075, 0.122);
-  vec3 deep = vec3(0.018, 0.044, 0.074);
-  vec3 predawn = vec3(0.075, 0.145, 0.215);
-  vec3 dawn = vec3(0.285, 0.465, 0.590);
-  vec3 gold = vec3(0.788, 0.663, 0.365);
+const routeKey = (pathname: string) => {
+  const key = pathname.replace(/^\//, "").split("/")[0];
+  return key in ROUTE_LOOKS ? key : "other";
+};
 
-  float vertical = smoothstep(0.0, 1.0, uv.y);
-  vec3 night = mix(deep, ink, vertical * 0.92);
-  vec3 morning = mix(vec3(0.075, 0.118, 0.165), dawn, vertical * 0.62);
-  vec3 color = mix(night, morning, smoothstep(0.38, 1.0, t) * 0.72);
+const smooth = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
 
-  float horizonY = mix(0.30, 0.38, smoothstep(0.0, 1.0, t));
-  float horizon = exp(-abs(uv.y - horizonY) * 30.0);
-  color += mix(vec3(0.08, 0.16, 0.23), vec3(0.34, 0.48, 0.58), t) * horizon * (0.12 + 0.34 * t);
+const mixLook = (a: Look, b: Look, t: number): Look => {
+  const out = { ...a };
+  (Object.keys(a) as (keyof Look)[]).forEach((k) => { out[k] = a[k] + (b[k] - a[k]) * t; });
+  return out;
+};
 
-  float mistBand = smoothstep(0.54, 0.16, uv.y) * smoothstep(0.03, 0.27, uv.y);
-  float mist = fbm(vec2(uv.x * 4.2, uv.y * 8.0) + uRoute * 3.7);
-  color = mix(color, mix(predawn, vec3(0.52, 0.61, 0.65), t), mistBand * smoothstep(0.48, 0.84, mist) * 0.12);
-
-  float radius = length((uv - uTransitionOrigin) * vec2(uResolution.x / max(uResolution.y, 1.0), 1.0));
-  float ringRadius = uTransition * 1.28;
-  float ring = 1.0 - smoothstep(0.0, 0.018 + uVelocity * 0.012, abs(radius - ringRadius));
-  color += gold * ring * (1.0 - uTransition) * 0.35;
-
-  float introLine = 1.0 - smoothstep(0.0, 0.003, abs(uv.y - horizonY));
-  outColor = vec4(color, 1.0);
-}`;
-
-const terrainVertex = `#version 300 es
-precision highp float;
-in vec2 aGrid;
-out float vHeight;
-out float vDepth;
-out vec3 vWorld;
-out vec2 vGrid;
-uniform vec2 uResolution;
-uniform float uTime;
-uniform float uWorldTime;
-uniform float uRoute;
-uniform float uProgramme;
-uniform float uIntro;
-
-float hash21(vec2 p) {
-  p = fract(p * vec2(123.34, 345.45));
-  p += dot(p, p + 34.345);
-  return fract(p.x * p.y);
-}
-float noise(vec2 p) {
-  vec2 i = floor(p);
-  vec2 f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash21(i), hash21(i + vec2(1.0, 0.0)), f.x),
-             mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0)), f.x), f.y);
-}
-float fbm(vec2 p) {
-  float v = 0.0;
-  float a = 0.56;
-  mat2 r = mat2(0.81, -0.59, 0.59, 0.81);
-  for (int i = 0; i < 5; i++) {
-    v += noise(p) * a;
-    p = r * p * 2.02 + vec2(4.7, 9.2);
-    a *= 0.48;
-  }
-  return v;
-}
-
-void main() {
-  float routeSeed = uRoute * 9.73;
-  float x = aGrid.x * 12.5;
-  float z = mix(2.0, 34.0, aGrid.y);
-  vec2 terrainUv = vec2(x * 0.13 + routeSeed, z * 0.105 + routeSeed * 0.31);
-  float broad = fbm(terrainUv * 0.72);
-  float detail = fbm(terrainUv * 1.73 + 8.2);
-  float ridge = sin(x * 0.29 + z * 0.16 + routeSeed) * 0.34 + sin(z * 0.39 - x * 0.10) * 0.19;
-  float programmeBias = sin((uProgramme + 1.0) * 1.17 + x * 0.12 + z * 0.08) * 0.18;
-  float h = (broad - 0.48) * 4.9 + (detail - 0.5) * 0.95 + ridge + programmeBias;
-  h += exp(-pow(x * 0.16 - sin(z * 0.08 + routeSeed), 2.0)) * 0.72;
-
-  float scroll = clamp(uWorldTime, 0.0, 1.0);
-  float routeCam = sin(routeSeed * 0.31) * 0.75;
-  vec3 camera = vec3(routeCam + sin(scroll * 1.9) * 0.22, 4.15 + scroll * 2.4, -5.7 + scroll * 4.8);
-  vec3 target = vec3(routeCam * 0.25, 0.35 + scroll * 0.85, 10.0 + scroll * 5.5);
-  vec3 forward = normalize(target - camera);
-  vec3 right = normalize(cross(forward, vec3(0.0, 1.0, 0.0)));
-  vec3 up = cross(right, forward);
-
-  vec3 world = vec3(x, h, z);
-  vec3 rel = world - camera;
-  vec3 view = vec3(dot(rel, right), dot(rel, up), dot(rel, forward));
-  float aspect = uResolution.x / max(1.0, uResolution.y);
-  float fov = mix(1.52, 1.64, smoothstep(0.0, 1.0, scroll));
-  float nearP = 0.1;
-  float farP = 70.0;
-  float zClip = ((farP + nearP) / (farP - nearP)) * view.z - ((2.0 * farP * nearP) / (farP - nearP));
-  gl_Position = vec4(view.x * fov / aspect, view.y * fov, zClip, max(view.z, 0.001));
-
-  vHeight = h;
-  vDepth = view.z;
-  vWorld = world;
-  vGrid = aGrid;
-}`;
-
-const terrainFragment = `#version 300 es
-precision highp float;
-in float vHeight;
-in float vDepth;
-in vec3 vWorld;
-in vec2 vGrid;
-out vec4 outColor;
-uniform vec2 uResolution;
-uniform vec2 uPointer;
-uniform vec2 uTransitionOrigin;
-uniform float uTime;
-uniform float uWorldTime;
-uniform float uTransition;
-uniform float uVelocity;
-uniform float uRoute;
-uniform float uProgramme;
-uniform float uPointerActive;
-
-float hash21(vec2 p) {
-  p = fract(p * vec2(123.34, 345.45));
-  p += dot(p, p + 34.345);
-  return fract(p.x * p.y);
-}
-float noise(vec2 p) {
-  vec2 i = floor(p);
-  vec2 f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash21(i), hash21(i + vec2(1.0, 0.0)), f.x),
-             mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0)), f.x), f.y);
-}
-
-void main() {
-  vec2 screenUv = gl_FragCoord.xy / max(uResolution, vec2(1.0));
-  vec2 lantern = uPointer;
-  if (uPointerActive < 0.5) lantern = vec2(0.5, 0.42);
-
-  float interval = mix(2.35, 3.05, smoothstep(0.0, 1.0, uWorldTime));
-  float phase = abs(fract(vHeight * interval + uProgramme * 0.037) - 0.5);
-  float aa = max(fwidth(vHeight * interval) * 1.35, 0.008);
-  float contour = 1.0 - smoothstep(0.0, aa, phase);
-
-  float minorPhase = abs(fract(vHeight * interval * 0.25) - 0.5);
-  float major = 1.0 - smoothstep(0.0, max(fwidth(vHeight * interval * 0.25) * 1.5, 0.009), minorPhase);
-
-  float aspect = uResolution.x / max(uResolution.y, 1.0);
-  float lanternDistance = length((screenUv - lantern) * vec2(aspect, 1.0));
-  float lanternPool = smoothstep(0.46, 0.008, lanternDistance);
-  lanternPool = pow(lanternPool, 1.18);
-
-  float transitionRadius = uTransition * 1.25;
-  float transitionDistance = length((screenUv - uTransitionOrigin) * vec2(aspect, 1.0));
-  float transitionRing = (1.0 - smoothstep(0.0, 0.028, abs(transitionDistance - transitionRadius))) * (1.0 - uTransition);
-
-  vec3 ink = vec3(0.018, 0.046, 0.074);
-  vec3 navy = vec3(0.027, 0.075, 0.122);
-  vec3 blueLine = vec3(0.18, 0.30, 0.39);
-  vec3 dawnLine = vec3(0.36, 0.50, 0.57);
-  vec3 gold = vec3(0.788, 0.663, 0.365);
-
-  float dawn = smoothstep(0.42, 1.0, uWorldTime);
-  vec3 base = mix(ink, navy, 0.44 + dawn * 0.24);
-  float slopeShade = clamp(0.54 + dFdx(vHeight) * -1.7 + dFdy(vHeight) * 1.1, 0.14, 1.0);
-  base *= mix(0.54, 0.94, slopeShade);
-
-  vec3 lineColor = mix(blueLine, dawnLine, dawn) * (0.22 + major * 0.15);
-  float goldAmount = clamp(lanternPool * 1.18 + transitionRing * 0.72 + major * lanternPool * 0.42, 0.0, 1.0);
-  lineColor = mix(lineColor, gold, goldAmount);
-  float lineStrength = contour * (0.16 + major * 0.14 + lanternPool * 1.45 + transitionRing * 0.5);
-  vec3 color = mix(base, lineColor, clamp(lineStrength, 0.0, 1.0));
-  color += gold * lanternPool * 0.065;
-
-  float valley = smoothstep(0.35, -1.25, vHeight);
-  float mistNoise = noise(vWorld.xz * 0.15 + uRoute * 2.7);
-  float mist = valley * smoothstep(0.42, 0.78, mistNoise) * (0.08 + dawn * 0.08);
-  vec3 fogColor = mix(vec3(0.07, 0.12, 0.16), vec3(0.42, 0.52, 0.56), dawn);
-  color = mix(color, fogColor, mist);
-
-  float distanceFog = smoothstep(19.0, 36.0, vDepth);
-  color = mix(color, mix(navy, fogColor, dawn * 0.65), distanceFog * 0.58);
-
-  float edgeGold = contour * lanternPool * (0.12 + uVelocity * 0.22);
-  color += gold * edgeGold;
-
-  outColor = vec4(color, 1.0);
-}`;
+const pickLook = (pathname: string, elements: HTMLElement[]): Look => {
+  const home = pathname === "/";
+  const stageLook = (name: string | undefined) => {
+    if (name === "summit") return HOME_STAGES.summit;
+    if (home) return HOME_STAGES[name ?? "night"] ?? HOME_STAGES.night;
+    return ROUTE_LOOKS[routeKey(pathname)];
+  };
+  if (!elements.length) return stageLook(undefined);
+  const anchor = window.innerHeight * 0.55;
+  let current = 0;
+  const rects = elements.map((el) => el.getBoundingClientRect());
+  for (let i = 0; i < rects.length; i += 1) if (rects[i].top <= anchor) current = i;
+  const rect = rects[current];
+  const frac = Math.min(1, Math.max(0, (anchor - rect.top) / Math.max(rect.height, 1)));
+  const next = elements[current + 1];
+  const here = stageLook(elements[current].dataset.worldStage);
+  if (!next) return here;
+  return mixLook(here, stageLook(next.dataset.worldStage), smooth(0.6, 1, frac));
+};
 
 const createShader = (gl: WebGL2RenderingContext, type: number, source: string) => {
   const shader = gl.createShader(type);
@@ -284,12 +113,7 @@ const createShader = (gl: WebGL2RenderingContext, type: number, source: string) 
   return shader;
 };
 
-const createProgram = (
-  gl: WebGL2RenderingContext,
-  vertex: string,
-  fragment: string,
-  uniformNames: string[],
-): ProgramBundle => {
+const createProgram = (gl: WebGL2RenderingContext, vertex: string, fragment: string): ProgramBundle => {
   const vs = createShader(gl, gl.VERTEX_SHADER, vertex);
   const fs = createShader(gl, gl.FRAGMENT_SHADER, fragment);
   const program = gl.createProgram();
@@ -305,7 +129,7 @@ const createProgram = (
     throw new Error(log);
   }
   const uniforms: Record<string, WebGLUniformLocation | null> = {};
-  uniformNames.forEach((name) => { uniforms[name] = gl.getUniformLocation(program, name); });
+  UNIFORM_NAMES.forEach((name) => { uniforms[name] = gl.getUniformLocation(program, name); });
   return { program, uniforms };
 };
 
@@ -353,30 +177,49 @@ const createTerrain = (gl: WebGL2RenderingContext, columns: number, rows: number
 const AscentWorld = ({ pathname }: AscentWorldProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const pathnameRef = useRef(pathname);
-  const routeRef = useRef(routeIndex(pathname));
+  const routeTargetRef = useRef(routeIndex(pathname));
   const transitionStartRef = useRef(typeof performance === "undefined" ? 0 : performance.now());
   const transitionOriginRef = useRef({ x: 0.5, y: 0.5 });
+  const firstFrameRef = useRef(false);
   const [introDone, setIntroDone] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const [introCount, setIntroCount] = useState(0);
 
+  // Loader: the count only reaches 100 once fonts are decoded and the world has drawn a frame.
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const started = performance.now();
+    const minimum = reduced ? 160 : 1100;
+    let fontsReady = false;
     let raf = 0;
-    const duration = reduced ? 160 : 1180;
+    let closing = 0;
+    let shown = 0;
+    document.fonts?.ready.then(() => { fontsReady = true; }).catch(() => { fontsReady = true; });
+    if (!document.fonts) fontsReady = true;
     const tick = (now: number) => {
-      const progress = Math.min(1, (now - started) / duration);
-      setIntroCount(Math.round(progress * 100));
-      if (progress < 1) raf = requestAnimationFrame(tick);
-      else window.setTimeout(() => setIntroDone(true), reduced ? 0 : 180);
+      const ready = fontsReady && firstFrameRef.current;
+      const timed = Math.min(1, (now - started) / minimum);
+      const ceiling = ready ? 1 : 0.94;
+      shown += (Math.min(timed, ceiling) - shown) * 0.22;
+      const value = Math.min(100, Math.round(shown * 100 + (ready && timed >= 1 ? 1 : 0)));
+      setIntroCount(value);
+      if (ready && timed >= 1 && value >= 99) {
+        setIntroCount(100);
+        setLeaving(true);
+        document.documentElement.dataset.khIntro = "done";
+        window.dispatchEvent(new CustomEvent("kingshill:intro-start"));
+        closing = window.setTimeout(() => setIntroDone(true), reduced ? 0 : 1000);
+        return;
+      }
+      raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => { cancelAnimationFrame(raf); window.clearTimeout(closing); };
   }, []);
 
   useEffect(() => {
     pathnameRef.current = pathname;
-    routeRef.current = routeIndex(pathname);
+    routeTargetRef.current = routeIndex(pathname);
     transitionStartRef.current = performance.now();
     transitionOriginRef.current = {
       x: experienceState.pointer.ndcX * 0.5 + 0.5,
@@ -390,7 +233,7 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
     const root = document.documentElement;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const gl = canvas.getContext("webgl2", {
-      alpha: true,
+      alpha: false,
       antialias: false,
       depth: true,
       stencil: false,
@@ -398,13 +241,9 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
       desynchronized: true,
     });
     if (!gl) {
-      document.documentElement.dataset.khWorld = "unsupported";
+      root.dataset.khWorld = "unsupported";
       return;
     }
-
-    gl.clearColor(0.018, 0.044, 0.074, 1);
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     const worldStarted = performance.now();
     let destroyed = false;
@@ -413,8 +252,20 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
     let renderScale = experienceState.renderScale;
     let programme = 0;
     let programmeTarget = 0;
+    let route = routeTargetRef.current;
     let transition = 1;
     let intro = 0;
+    let lanternX = 0.50;
+    let lanternY = 0.17;
+    let lanternPower = 0.72;
+    let tapX = 0.5;
+    let tapY = 0.5;
+    let tapTime = -1e9;
+    let lastHeld = -1e9;
+    let wasPressed = false;
+    let stageEls: HTMLElement[] = [];
+    let stageRefresh = 0;
+    const look: Look = { ...HOME_STAGES.night };
     let frameAccumulator = 0;
     let frameSamples = 0;
     let lastFrame = performance.now();
@@ -422,17 +273,18 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
 
     let sky: ProgramBundle;
     let terrain: ProgramBundle;
+    let dust: ProgramBundle;
+    let finish: ProgramBundle;
     let terrainData: ReturnType<typeof createTerrain>;
+    const dustCount = experienceState.quality === "high" ? 1500 : experienceState.quality === "medium" ? 1000 : 640;
 
     try {
-      sky = createProgram(gl, skyVertex, skyFragment, [
-        "uResolution", "uPointer", "uTransitionOrigin", "uTime", "uWorldTime", "uRoute", "uTransition", "uVelocity", "uIntro",
-      ]);
-      terrain = createProgram(gl, terrainVertex, terrainFragment, [
-        "uResolution", "uPointer", "uTransitionOrigin", "uTime", "uWorldTime", "uRoute", "uProgramme", "uTransition", "uVelocity", "uIntro", "uPointerActive",
-      ]);
+      sky = createProgram(gl, skyVertex, skyFragment);
+      terrain = createProgram(gl, terrainVertex, terrainFragment);
+      dust = createProgram(gl, dustVertex, dustFragment);
+      finish = createProgram(gl, finishVertex, finishFragment);
       const columns = experienceState.quality === "high" ? 168 : experienceState.quality === "medium" ? 138 : 112;
-      const rows = experienceState.quality === "high" ? 112 : experienceState.quality === "medium" ? 92 : 74;
+      const rows = experienceState.quality === "high" ? 132 : experienceState.quality === "medium" ? 108 : 84;
       terrainData = createTerrain(gl, columns, rows);
       const gridLocation = gl.getAttribLocation(terrain.program, "aGrid");
       gl.bindVertexArray(terrainData.vao);
@@ -481,6 +333,12 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
     };
     const onContextRestored = () => { window.location.reload(); };
 
+    const onTap = (event: PointerEvent) => {
+      tapX = event.clientX / Math.max(1, window.innerWidth);
+      tapY = 1 - event.clientY / Math.max(1, window.innerHeight);
+      tapTime = performance.now();
+    };
+    window.addEventListener("pointerdown", onTap, { passive: true });
     window.addEventListener("resize", onResize, { passive: true });
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("kingshill:programme-change", onProgramme as EventListener);
@@ -490,18 +348,29 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
     experienceState.markReady("world");
 
     const setCommon = (bundle: ProgramBundle, elapsed: number, worldTime: number) => {
-      const uniforms = bundle.uniforms;
-      const pointerX = experienceState.pointer.smoothNdcX * 0.5 + 0.5;
-      const pointerY = experienceState.pointer.smoothNdcY * 0.5 + 0.5;
-      gl.uniform2f(uniforms.uResolution, canvas.width, canvas.height);
-      gl.uniform2f(uniforms.uPointer, pointerX, pointerY);
-      gl.uniform2f(uniforms.uTransitionOrigin, transitionOriginRef.current.x, transitionOriginRef.current.y);
-      gl.uniform1f(uniforms.uTime, elapsed);
-      gl.uniform1f(uniforms.uWorldTime, worldTime);
-      gl.uniform1f(uniforms.uRoute, routeRef.current);
-      gl.uniform1f(uniforms.uTransition, transition);
-      gl.uniform1f(uniforms.uVelocity, Math.min(1, Math.abs(experienceState.scroll.velocity) / 120));
-      gl.uniform1f(uniforms.uIntro, intro);
+      const u = bundle.uniforms;
+      gl.uniform2f(u.uResolution, canvas.width, canvas.height);
+      gl.uniform2f(u.uLantern, lanternX, lanternY);
+      gl.uniform2f(u.uTransitionOrigin, transitionOriginRef.current.x, transitionOriginRef.current.y);
+      gl.uniform1f(u.uLanternPower, lanternPower);
+      gl.uniform1f(u.uTime, elapsed);
+      gl.uniform1f(u.uWorldTime, worldTime);
+      gl.uniform1f(u.uRoute, route);
+      gl.uniform1f(u.uProgramme, programme);
+      gl.uniform1f(u.uTransition, transition);
+      gl.uniform1f(u.uVelocity, Math.min(1, Math.abs(experienceState.scroll.velocity) / 120));
+      gl.uniform1f(u.uIntro, intro);
+      gl.uniform1f(u.uPixel, canvas.height / Math.max(1, window.innerHeight));
+      gl.uniform3f(u.uCam, look.camY, look.pitch, look.ahead);
+      gl.uniform1f(u.uCamZ, -7 + experienceState.scroll.current * 0.0035);
+      gl.uniform1f(u.uTrails, look.trails);
+      gl.uniform1f(u.uTerrace, look.terrace);
+      gl.uniform1f(u.uSummit, look.summit);
+      gl.uniform1f(u.uBeacon, look.beacon);
+      gl.uniform3f(u.uTap, tapX, tapY, Math.max(0, (performance.now() - tapTime) / 1000));
+      gl.uniform1f(u.uDim, look.dim);
+      gl.uniform1f(u.uContour, look.contour);
+      gl.uniform1f(u.uFlat, look.flat);
     };
 
     const draw = (now: number) => {
@@ -513,43 +382,89 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
       lastFrame = now;
       frameAccumulator += deltaMs;
       frameSamples += 1;
-      const elapsed = now * 0.001;
+      const elapsed = reduced ? 0 : now * 0.001;
       const routeTransitionAge = Math.min(1, (now - transitionStartRef.current) / (reduced ? 120 : 920));
       transition = reduced ? 1 : routeTransitionAge;
-      const introTarget = Math.min(1, (now - worldStarted) / 1100);
-      intro += (introTarget - intro) * (reduced ? 1 : 0.07);
+      const introTarget = Math.min(1, (now - worldStarted) / 1400);
+      intro += (introTarget - intro) * (reduced ? 1 : 0.06);
       programme += (programmeTarget - programme) * 0.065;
 
-      const currentPathname = pathnameRef.current;
-      const worldTime = currentPathname === "/" ? Math.min(1, experienceState.scroll.progress * 1.12) : routeWorldTime(currentPathname);
+      // The landscape morphs between routes instead of cutting.
+      route += (routeTargetRef.current - route) * (reduced ? 1 : 0.045);
+      if (Math.abs(routeTargetRef.current - route) < 0.001) route = routeTargetRef.current;
+
+      // Stage: the hillside changes vantage point and hour as you climb the page.
+      stageRefresh -= 1;
+      if (stageRefresh <= 0) {
+        stageEls = Array.from(document.querySelectorAll<HTMLElement>("[data-world-stage]"));
+        stageRefresh = 45;
+      }
+      const target = pickLook(pathnameRef.current, stageEls);
+      const k = reduced ? 1 : 1 - Math.exp(-deltaMs * 0.0034);
+      (Object.keys(target) as (keyof Look)[]).forEach((key) => { look[key] += (target[key] - look[key]) * k; });
+
+      // Lantern: follows a finger or cursor, rests where the stage wants it, and drifts while idle.
+      const pressed = experienceState.pointer.pressed;
+      if (pressed) lastHeld = now;
+      if (wasPressed && !pressed) lastHeld = now;
+      wasPressed = pressed;
+      const coarse = experienceState.pointer.coarse;
+      const following = experienceState.pointer.active && (coarse ? pressed || now - lastHeld < 1400 : true);
+      const idleX = look.lx + Math.sin(elapsed * 0.13) * 0.06;
+      const idleY = look.ly + Math.cos(elapsed * 0.11) * 0.035;
+      const targetX = following ? experienceState.pointer.smoothNdcX * 0.5 + 0.5 : idleX;
+      const targetY = following ? experienceState.pointer.smoothNdcY * 0.5 + 0.5 : idleY;
+      lanternX += (targetX - lanternX) * 0.08;
+      lanternY += (targetY - lanternY) * 0.08;
+      lanternPower += ((following ? Math.max(1, look.lp) : look.lp) - lanternPower) * 0.05;
+
+      const worldTime = look.time;
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.depthMask(true);
       gl.clearColor(0.018, 0.044, 0.074, 1);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+      // 1. Sky
+      gl.disable(gl.BLEND);
       gl.disable(gl.DEPTH_TEST);
       gl.useProgram(sky.program);
       setCommon(sky, elapsed, worldTime);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-      gl.clearDepth(1);
-      gl.clear(gl.DEPTH_BUFFER_BIT);
+      // 2. Terrain
       gl.enable(gl.DEPTH_TEST);
       gl.depthFunc(gl.LEQUAL);
       gl.useProgram(terrain.program);
       setCommon(terrain, elapsed, worldTime);
-      gl.uniform1f(terrain.uniforms.uProgramme, programme);
-      gl.uniform1f(terrain.uniforms.uPointerActive, experienceState.pointer.active ? 1 : 0);
       gl.bindVertexArray(terrainData.vao);
       gl.drawElements(gl.TRIANGLES, terrainData.indexCount, gl.UNSIGNED_INT, 0);
       gl.bindVertexArray(null);
 
+      // 3. Gold dust (additive, depth-tested, no depth write)
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+      gl.depthMask(false);
+      gl.useProgram(dust.program);
+      setCommon(dust, elapsed, worldTime);
+      gl.drawArrays(gl.POINTS, 0, dustCount);
+      gl.depthMask(true);
+
+      // 4. Finish: vignette + grain
+      gl.disable(gl.DEPTH_TEST);
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      gl.useProgram(finish.program);
+      setCommon(finish, elapsed, worldTime);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.disable(gl.BLEND);
+
+      firstFrameRef.current = true;
+
       if (now - lastQualityCheck > 2200 && frameSamples > 20 && !reduced) {
         const average = frameAccumulator / frameSamples;
         const previous = renderScale;
-        if (average > 23.5) renderScale = Math.max(0.68, renderScale - 0.08);
+        if (average > 23.5) renderScale = Math.max(0.5, renderScale - 0.08);
         else if (average < 16.9) renderScale = Math.min(1, renderScale + 0.04);
         if (Math.abs(previous - renderScale) > 0.001) {
           experienceState.setRenderScale(renderScale);
@@ -570,6 +485,7 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
       destroyed = true;
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
+      window.removeEventListener("pointerdown", onTap);
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("kingshill:programme-change", onProgramme as EventListener);
       canvas.removeEventListener("webglcontextlost", onContextLost);
@@ -579,6 +495,8 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
       gl.deleteVertexArray(terrainData.vao);
       gl.deleteProgram(sky.program);
       gl.deleteProgram(terrain.program);
+      gl.deleteProgram(dust.program);
+      gl.deleteProgram(finish.program);
       delete root.dataset.khWorld;
     };
   }, []);
@@ -587,7 +505,7 @@ const AscentWorld = ({ pathname }: AscentWorldProps) => {
     <div className="kh-ascent-world" aria-hidden="true">
       <canvas ref={canvasRef} className="kh-ascent-world__canvas" />
       {!introDone && (
-        <div className="kh-ascent-loader">
+        <div className={`kh-ascent-loader${leaving ? " is-leaving" : ""}`}>
           <div className="kh-ascent-loader__line"><span style={{ width: `${introCount}%` }} /></div>
           <div className="kh-ascent-loader__meta"><span>Kingshill / Ascent</span><strong>{String(introCount).padStart(3, "0")}</strong></div>
         </div>

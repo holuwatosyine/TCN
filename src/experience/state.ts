@@ -90,7 +90,7 @@ class ExperienceState {
 
 
   setRenderScale(scale: number) {
-    const next = clamp(scale, 0.68, 1);
+    const next = clamp(scale, 0.5, 1);
     if (Math.abs(next - this.renderScale) < 0.001) return;
     this.renderScale = next;
     if (typeof window !== "undefined") {

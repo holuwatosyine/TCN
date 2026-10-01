@@ -23,6 +23,14 @@ type CorporatePageFrameProps = {
   actionHref?: string;
 };
 
+const PLATES: Record<string, { title: string; rows: [string, string][] }> = {
+  "03": { title: "Terrace survey", rows: [["Routes", "04"], ["Waypoints", "20+"], ["Accreditation", "CCC"]] },
+  "04": { title: "The ridge line", rows: [["Guides", "03"], ["Experience", "12–20+ yrs"], ["Certified", "ICF / CCC"]] },
+  "05": { title: "Field archive", rows: [["Guides", "Free"], ["Videos", "3 series"], ["Templates", "35+"]] },
+  "06": { title: "Field record", rows: [["Plates", "06"], ["Film", "1 / 5:30"], ["Cities", "05"]] },
+  "07": { title: "Signal", rows: [["Position", "6.5°N 3.4°E"], ["Office", "Mende–Maryland"], ["Hours", "Mon–Fri 9–6"]] },
+};
+
 const CorporatePageFrame = ({
   eyebrow,
   title,
@@ -104,10 +112,14 @@ const CorporatePageFrame = ({
                 <figcaption>{heroCaption ?? "Kingshill School of Discovery · Lagos"}</figcaption>
               </InteractiveImage>
             ) : (
-              <div className="kh-cp-hero__signal" aria-hidden="true">
-                <span className="kh-cp-hero__signal-mark">KH</span>
-                <span className="kh-cp-hero__signal-line" />
-                <span className="kh-cp-hero__signal-note">Human capital / Intelligence / Development</span>
+              <div className="kh-cp-hero__signal kh-cp-plate" aria-hidden="true">
+                <span className="kh-cp-plate__title">{(PLATES[pageNumber] ?? PLATES["03"]).title}</span>
+                <span className="kh-cp-plate__rule" />
+                <dl>
+                  {(PLATES[pageNumber] ?? PLATES["03"]).rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+                </dl>
+                <span className="kh-cp-plate__corner kh-cp-plate__corner--a" />
+                <span className="kh-cp-plate__corner kh-cp-plate__corner--b" />
               </div>
             )}
 

@@ -25,10 +25,13 @@ const HomeExperience = () => {
     const root = rootRef.current;
     if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const context = gsap.context(() => {
-      gsap.timeline({ defaults: { ease: "power3.out" } })
+      const intro = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } })
         .from(".kh-home__eyebrow", { y: 18, autoAlpha: 0, duration: .7 })
         .from(".kh-hero-pressure__line", { yPercent: 105, clipPath: "inset(0 0 100% 0)", autoAlpha: 0, duration: 1.05, stagger: .1 }, "-=.35")
         .from(".kh-home__intro, .kh-home__hero-actions, .kh-home__stats, .kh-home__terrain-meta", { y: 22, autoAlpha: 0, duration: .72, stagger: .07 }, "-=.58");
+      // The hero copy waits for the loader to hand the world over.
+      if (document.documentElement.dataset.khIntro === "done") intro.play();
+      else window.addEventListener("kingshill:intro-start", () => intro.play(), { once: true });
 
       gsap.utils.toArray<HTMLElement>("[data-home-reveal]").forEach((item) => {
         gsap.fromTo(item, { y: 32, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: .9, ease: "power3.out", scrollTrigger: { trigger: item, start: "top 86%", once: true } });
@@ -69,11 +72,13 @@ const HomeExperience = () => {
             </div>
             <div className="kh-home__stats" aria-label="Kingshill facts"><div><strong>25+</strong><span>Years</span></div><div><strong>1,000+</strong><span>Graduates</span></div><div><strong>CCC</strong><span>Accredited</span></div></div>
             <div className="kh-home__hero-note"><span>Life transformation</span><span>Social development</span></div>
-            <div className="kh-home__terrain-meta" aria-hidden="true"><span>The ascent / 01</span><span>Lagos · Est. 1999</span></div>
+            <div className="kh-home__terrain-meta" aria-hidden="true"><span>The ascent / 01</span><span>Lagos · Est. 1999</span><span>6.5°N 3.4°E</span></div>
           </div>
         </section>
 
         <section id="about" className="kh-home__section kh-home__about" data-world-stage="discovery">
+          <i className="kh-home__ridge kh-home__ridge--top" aria-hidden="true" />
+          <i className="kh-home__ridge kh-home__ridge--bottom" aria-hidden="true" />
           <div className="kh-shell">
             <div className="kh-home__section-head" data-home-reveal><div className="kh-home__section-label"><span>02</span><span>About Kingshill</span></div><EditorialHeading className="kh-home__section-title">Potential is a practice.</EditorialHeading></div>
             <div className="kh-home__about-grid">

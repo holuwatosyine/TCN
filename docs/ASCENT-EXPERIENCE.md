@@ -95,3 +95,27 @@ Primary donor candidates identified so far:
 ## Known content ceiling
 
 Faculty photography and some WhatsApp-origin media remain the largest non-code quality limitation. The implementation should art-direct them consistently now, but the final AAA pass requires properly directed, high-resolution portraits/photography.
+
+## Visual pass — stages, trails and mobile-first lighting
+
+The world is now **stage-driven**. Every `[data-world-stage]` element (home sections, each inner-route hero, the footer)
+names a *look*; `AscentWorld` blends between the looks of the sections around the viewport's 55% line and eases the
+result, so the hillside changes vantage point and hour as you scroll and glides on route change.
+
+- **Looks** (`HOME_STAGES`, `ROUTE_LOOKS` in `AscentWorld.tsx`): camera height/pitch/distance, hour (`time`), trails,
+  terraces, summit sun, sonar beacon, dim, contour density, relief flattening, resting lantern position and power.
+- **Home:** `night` (hero) → `discovery` (paper About) → `routes` (high top-down map; the four programmes are gold trails
+  with waypoints, the selected one lit) → `dawn` (voices) → `summit` (footer sunrise, rising dust).
+- **Inner routes:** about = low dusk ridge, training = terraced slopes, faculty = calm/dim, resources = dense cartography,
+  gallery = cinematic dim, contact = sonar beacon.
+- **Touch first:** a finger moves the lantern and holds for ~1.4s, a tap sends a gold ripple through the terrain, and
+  the lantern idles/drifts on its own. Nothing depends on hover.
+- **Loader:** the count only reaches 100 once fonts are decoded and the world has drawn; the line then settles onto
+  the horizon while the world is revealed, and hero copy waits for `kingshill:intro-start`.
+- **Images:** `InteractiveImage` is DOM-only (graded photo + lantern highlight via `--mx/--my`). `kageCloth.ts` was
+  removed, so the site now uses exactly one WebGL context.
+- **Type:** Instrument Serif (`--kh-serif`) replaces Georgia; `Lexend Outline KH` is an overlap-free static instance used
+  only for the outlined hero lines.
+- **Performance:** one canvas, DPR capped at 1.5 on phones, adaptive render scale down to 0.5, mesh/dust tiers by
+  device quality. WebGL2 is required (iOS 15+, Android Chrome 58+); the static poster remains only as a hard-failure
+  safety net, not as a reduced mobile mode.

@@ -1,6 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { experienceState } from "@/experience/state";
-import { createKageCloth } from "@/components/effects/kageCloth";
 
 type InteractiveImageProps = {
   src: string;
@@ -10,67 +9,46 @@ type InteractiveImageProps = {
   children?: ReactNode;
 };
 
-const drawCoverPlate = (image: HTMLImageElement, width: number, height: number) => {
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(width));
-  canvas.height = Math.max(1, Math.round(height));
-  const context = canvas.getContext("2d");
-  if (!context) return null;
-  const scale = Math.max(canvas.width / Math.max(1, image.naturalWidth), canvas.height / Math.max(1, image.naturalHeight));
-  const drawWidth = image.naturalWidth * scale;
-  const drawHeight = image.naturalHeight * scale;
-  context.drawImage(image, (canvas.width - drawWidth) / 2, (canvas.height - drawHeight) / 2, drawWidth, drawHeight);
-  return canvas;
-};
-
+/* Art-directed photo: graded toward the brand (cool, desaturated, warm highlight) and lit by the
+   same gold "lantern" as the world. A finger or cursor moves the light and lets colour back in.
+   Pure DOM + CSS variables: no extra WebGL context per image. */
 export const InteractiveImage = ({ src, alt, className = "", imageClassName = "", children }: InteractiveImageProps) => {
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const imageRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     const root = rootRef.current;
-    const canvas = canvasRef.current;
-    const image = imageRef.current;
-    if (!root || !canvas || !image || experienceState.reducedMotion) return;
-    let disposed = false;
-    let cloth: ReturnType<typeof createKageCloth> = null;
-    let plate: HTMLCanvasElement | null = null;
-    let plateWidth = 0;
-    let plateHeight = 0;
-
-    const getPlate = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.65);
-      const width = Math.max(1, Math.round(root.clientWidth * dpr));
-      const height = Math.max(1, Math.round(root.clientHeight * dpr));
-      if (!plate || width !== plateWidth || height !== plateHeight) {
-        plate = drawCoverPlate(image, width, height);
-        plateWidth = width;
-        plateHeight = height;
-      }
-      return plate;
+    if (!root || experienceState.reducedMotion) return;
+    let timer = 0;
+    const move = (event: PointerEvent) => {
+      const rect = root.getBoundingClientRect();
+      root.style.setProperty("--mx", `${((event.clientX - rect.left) / Math.max(1, rect.width)) * 100}%`);
+      root.style.setProperty("--my", `${((event.clientY - rect.top) / Math.max(1, rect.height)) * 100}%`);
     };
-
-    const start = () => {
-      if (disposed || cloth || !image.complete || !image.naturalWidth) return;
-      cloth = createKageCloth(canvas, root, getPlate);
-      if (cloth) root.dataset.imageReady = "true";
+    const press = (event: PointerEvent) => {
+      move(event);
+      root.dataset.lit = "true";
+      window.clearTimeout(timer);
+      if (event.pointerType !== "mouse") timer = window.setTimeout(() => { delete root.dataset.lit; }, 2200);
     };
-    image.addEventListener("load", start, { once: true });
-    start();
+    const leave = () => { delete root.dataset.lit; };
+    root.addEventListener("pointermove", move, { passive: true });
+    root.addEventListener("pointerdown", press, { passive: true });
+    root.addEventListener("pointerenter", press, { passive: true });
+    root.addEventListener("pointerleave", leave, { passive: true });
     return () => {
-      disposed = true;
-      image.removeEventListener("load", start);
-      cloth?.dispose();
-      delete root.dataset.imageReady;
+      window.clearTimeout(timer);
+      root.removeEventListener("pointermove", move);
+      root.removeEventListener("pointerdown", press);
+      root.removeEventListener("pointerenter", press);
+      root.removeEventListener("pointerleave", leave);
     };
   }, [src]);
 
   return (
     <div ref={rootRef} className={`kh-interactive-image ${className}`} data-cursor="image">
       <div className="kh-interactive-image__plane">
-        <canvas ref={canvasRef} className="kh-kage-cloth" aria-hidden="true" />
-        <img ref={imageRef} src={src} alt={alt} className={imageClassName} loading="eager" decoding="async" />
+        <img ref={undefined} src={src} alt={alt} className={imageClassName} loading="eager" decoding="async" />
+        <span className="kh-interactive-image__lantern" aria-hidden="true" />
         {children}
       </div>
     </div>

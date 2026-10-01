@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
-const GA_ID = (import.meta as any).env?.VITE_GA_ID as string | undefined;
+const GA_ID = import.meta.env.VITE_GA_ID as string | undefined;
 if (GA_ID && !document.getElementById('ga-script')) {
   const s = document.createElement('script');
   s.id = 'ga-script';
@@ -14,8 +14,8 @@ if (GA_ID && !document.getElementById('ga-script')) {
   document.head.appendChild(inline);
 }
 
-const ERROR_ENDPOINT = (import.meta as any).env?.VITE_ERROR_ENDPOINT as string | undefined;
-function reportError(payload: any) {
+const ERROR_ENDPOINT = import.meta.env.VITE_ERROR_ENDPOINT as string | undefined;
+function reportError(payload: Record<string, unknown>) {
   if (!ERROR_ENDPOINT || !navigator.sendBeacon) return;
   const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
   navigator.sendBeacon(ERROR_ENDPOINT, blob);

@@ -26,7 +26,14 @@ const CuratedWorld = ({ pathname }: CuratedWorldProps) => {
     const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 120);
     camera.position.set(0, 2.2, 12);
 
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: !mobile, alpha: true, powerPreference: "high-performance" });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: !mobile, alpha: true, powerPreference: "high-performance" });
+    } catch (error) {
+      console.error("TCN WebGL scene unavailable", error);
+      root.dataset.khWorld = "unsupported";
+      return () => undefined;
+    }
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;

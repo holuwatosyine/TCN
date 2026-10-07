@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import CuratedWorld from "@/experience/CuratedWorld";
 import useBrandGlassShine from "@/components/effects/useBrandGlassShine";
 import "@/experience/AscentExperience.css";
 import { experienceState } from "@/experience/state";
@@ -110,11 +109,7 @@ const ExperienceRuntime = () => {
     };
   }, [location.pathname]);
 
-  return (
-    <>
-      <CuratedWorld pathname={location.pathname} />
-    </>
-  );
+  return null;
 };
 
 export default ExperienceRuntime;

@@ -24,7 +24,7 @@ const CuratedWorld = ({ pathname }: CuratedWorldProps) => {
     scene.fog = new THREE.FogExp2("#dfe8e2", mobile ? 0.045 : 0.032);
 
     const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 120);
-    camera.position.set(0, 2.2, 12);
+    camera.position.set(0, 2.4, 13.8);
 
     let renderer: THREE.WebGLRenderer;
     try {
@@ -111,7 +111,7 @@ const CuratedWorld = ({ pathname }: CuratedWorldProps) => {
         mesh.receiveShadow = true;
         mesh.material = new THREE.MeshStandardMaterial({ color: "#8f9d92", roughness: 0.82, metalness: 0.02 });
       });
-      fitAsset(asset, mobile ? 5.8 : 7.2);
+      fitAsset(asset, mobile ? 4.9 : 5.8);
       asset.position.set(0, -1.34, -3.5);
       asset.rotation.y = Math.PI;
       hands.add(asset);
@@ -171,7 +171,7 @@ const CuratedWorld = ({ pathname }: CuratedWorldProps) => {
       hands.visible = handReady && progress < 0.72;
       tree.visible = treeReady && progress > 0.28;
       if (handAsset) {
-        handAsset.position.z = -3.5 + hero * 3.25;
+        handAsset.position.z = -3.5 + hero * 3.0;
         handAsset.rotation.y = Math.PI + pointerX * 0.055;
         handAsset.rotation.x = pointerY * 0.025;
       }
@@ -184,8 +184,8 @@ const CuratedWorld = ({ pathname }: CuratedWorldProps) => {
       if (mixer) mixer.update(reducedMotion ? 0 : delta * (0.18 + about * 0.5));
 
       camera.position.x += ((pointerX * 0.35) - camera.position.x) * 0.035;
-      camera.position.y += ((2.2 + pointerY * 0.18 - hero * 0.38 + about * 0.12) - camera.position.y) * 0.035;
-      camera.position.z += ((12 - hero * 3.5 + transition * 1.8) - camera.position.z) * 0.035;
+      camera.position.y += ((2.4 + pointerY * 0.18 - hero * 0.28 + about * 0.12) - camera.position.y) * 0.035;
+      camera.position.z += ((13.8 - hero * 3.0 + transition * 1.6) - camera.position.z) * 0.035;
       camera.lookAt(0, 1.15 + about * 0.25, -4 + hero * 1.8);
 
       const sceneMix = about;

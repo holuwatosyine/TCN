@@ -8,7 +8,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import SkipLink from "@/components/SkipLink";
 import { SectionSkeleton } from "@/components/Skeletons";
 
-const Index = lazy(() => import("./pages/Index"));
+const Index = lazy(() => import("./pages/SceneLab"));
 const About = lazy(() => import("./pages/About"));
 const Training = lazy(() => import("./pages/Training"));
 const Faculty = lazy(() => import("./pages/Faculty"));

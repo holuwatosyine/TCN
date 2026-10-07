@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import AscentWorld from "@/experience/AscentWorld";
+import CuratedWorld from "@/experience/CuratedWorld";
 import useBrandGlassShine from "@/components/effects/useBrandGlassShine";
 import "@/experience/AscentExperience.css";
 import { experienceState } from "@/experience/state";
@@ -112,7 +112,7 @@ const ExperienceRuntime = () => {
 
   return (
     <>
-      <AscentWorld pathname={location.pathname} />
+      <CuratedWorld pathname={location.pathname} />
     </>
   );
 };

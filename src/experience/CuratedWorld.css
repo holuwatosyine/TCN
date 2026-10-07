@@ -1,0 +1,42 @@
+.kh-curated-world {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 72% 23%, rgba(255, 255, 255, .92), transparent 33%),
+    linear-gradient(180deg, #dce9e4 0%, #f4f5ee 48%, #d6e3dc 100%);
+  contain: strict;
+  transition: background 900ms ease;
+}
+
+.kh-curated-world::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(180deg, rgba(255,255,255,.14), transparent 45%, rgba(7,19,31,.08));
+  pointer-events: none;
+}
+
+.kh-curated-world__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: .98;
+}
+
+html[data-kh-world="loading"] .kh-curated-world__canvas { opacity: .12; }
+html[data-kh-world="error"] .kh-curated-world__canvas,
+html[data-kh-world="unsupported"] .kh-curated-world__canvas,
+html[data-kh-world="lost"] .kh-curated-world__canvas { opacity: 0; }
+
+@media (max-width: 720px) {
+  .kh-curated-world { background:
+    radial-gradient(circle at 70% 18%, rgba(255,255,255,.94), transparent 34%),
+    linear-gradient(180deg, #dfece6 0%, #f7f6ef 52%, #d7e5dc 100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kh-curated-world { transition: none; }
+}
